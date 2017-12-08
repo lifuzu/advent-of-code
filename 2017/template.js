@@ -18,8 +18,11 @@ module.exports = {
 if (require.main === module) {
   const something = new Something()
 
-  let input = ''
+  let input = ``
   let output = something.somefunc(input)
   console.log(output)
   assert.equal(output, 5)
+
+  console.log('======')
+
 }
