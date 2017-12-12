@@ -34,149 +34,102 @@ const assert = require('assert')
 
 const Move = { 'N': 0, 'NE': 1, 'SE': 2, 'S': 3, 'SW': 4, 'NW': 5 }
 
+// REFER: https://www.redblobgames.com/grids/hexagons/
 class HexGrid {
   constructor() {}
   steps(input) {
     // 1. split the input by ',', get the move direction
     // 2. construct hexagon matrix, like:
     //   +--+      +--+      +--+      +--+      +--+
-    //  /    \    /    \    /    \    /    \    /    \
-    // + -5,2 +--+ -2,2 +--+ 0,2  +--+ 2,2  +--+ 4,2
-    //  \    /    \    /    \    /    \    /    \    /
-    //   +--+ -3,1 +--+ -1,1 +--+ 1,1  +--+ 3,1  +--+
-    //  /    \    /    \    /    \    /    \    /    \
-    // + -5,1 +--+ -2,1 +--+ 0,1  +--+ 2,1  +--+ 4,1
-    //  \    /    \    /    \    /    \    /    \    /
-    //   +--+ -3,0 +--+ -1,0 +--+ 1,0  +--+ 3,0  +--+
-    //  /    \    /    \    /    \    /    \    /    \
-    // + -5,0 +--+ -2,0 +--+ 0,0  +--+ 2,0  +--+ 4,0
-    //  \    /    \    /    \    /    \    /    \    /
-    //   +--+ -4,-1+--+ -1,-1+--+ 1,-1 +--+ 3,-1 +--+
-    //  /    \    /    \    /    \    /    \    /    \
-    // + -5,-1+--+ -2,-1+--+ 0,-1 +--+ 2,-1 +--+ 4,-1
-    //  \    /    \    /    \    /    \    /    \    /
-    //   +--+ -4,-2+--+ -1,-2+--+ 1,-2 +--+ 3,-2 +--+
-    //  /    \    /    \    /    \    /    \    /    \
-    // + -5,-2+--+ -2,-2+--+ 0,-2 +--+ 2,-2 +--+ 4,-2
-    //  \    /    \    /    \    /    \    /    \    /
-    //   +--+ -4,-3+--+ -1,-3+--+ 1,-3 +--+ 3,-3 +--+
+    //  / 4  \    / 4  \    / 4  \    / 4  \    / 4  \
+    // +   -4 +--+   -2 +--+    0 +--+    2 +--+    4
+    //  \ 0  / 3  \ -1 / 3  \ -2 / 3  \ -3 / 3  \ -4 /
+    //   +--+   -3 +--+   -1 +--+    1 +--+    3 +--+
+    //  / 2  \ 0  / 2  \ -1 / 2  \ -2 / 2  \ -3 / 2  \
+    // +   -4 +--+   -2 +--+    0 +--+    2 +--+    4
+    //  \ 1  / 1  \ 0  / 1  \ -1 / 1  \ -2 / 1  \ -3 /
+    //   +--+   -3 +--+   -1 +--+    1 +--+    3 +--+
+    //  / 0  \ 1  / 0  \ 0  / 0  \ -1 / 0  \ -2 / 0  \
+    // +   -4 +--+   -2 +--+    0 +--+    2 +--+    4
+    //  \ 2  / -1 \ 1  / -1 \ 0  / -1 \ -1 / -1 \ -2 /
+    //   +--+   -3 +--+   -1 +--+    1 +--+    3 +--+
+    //  / -2 \ 2  / -2 \ 1  / -2 \ 0  / -2 \ -1 / -2 \
+    // +   -4 +--+   -2 +--+    0 +--+    2 +--+    4
+    //  \ 3  / -3 \ 2  / -3 \ 1  / -3 \ 0  / -3 \ -1 /
+    //   +--+   -3 +--+   -1 +--+    1 +--+    3 +--+
+    //  / -4 \ 3  / -4 \ 2  / -4 \ 1  / -4 \ 0  / -4 \
+    // +   -4 +--+   -2 +--+    0 +--+    2 +--+    4
+    //  \ 4  /    \ 3  /    \ 2  /    \ 1  /    \ 0  /
+    //   +--+      +--+      +--+      +--+      +--+
     // 3. move in the above matrix according to the step
     // 4. calculate the distance
     const steps = input.split(/,/).map( s => s.trim().toUpperCase())
 
-    // start point in the hexagon matrix
-    let [x, y] = [0, 0]
+    // move the steps in the hexagon, start from [0, 0, 0]
+    let [x, y, z] = this.move([0, 0, 0], steps)
+
+    // calculate the distance to the start point - [0, 0, 0]
+    return this.hex_distance({x: 0, y: 0, z: 0}, {x: x, y: y, z: z})
+  }
+
+  // move the steps in the hexagon
+  move([x, y, z], steps) {
     // move the steps in the hexagon
     for (let step of steps) {
-      switch(step) {
-        case 'N':
-          [x, y] = [x, y + 1]
-          break
-        case 'NE':
-          if (x % 2 === 0)
-            [x, y] = [x + 1, y + 1]
-          else
-            [x, y] = [x + 1, y]
-          break
-        case 'SE':
-          if (x % 2 === 0)
-            [x, y] = [x + 1, y]
-          else
-            [x, y] = [x + 1, y - 1]
-          break
-        case 'S':
-          [x, y] = [x, y - 1]
-          break
-        case 'SW':
-          if (x % 2 === 0)
-            [x, y] = [x - 1, y]
-          else
-            [x, y] = [x - 1, y - 1]
-          break
-        case 'NW':
-          if(x % 2 === 0)
-            [x, y] = [x - 1, y + 1]
-          else
-            [x, y] = [x - 1, y]
-          break
-        default:
-          console.error('ERROR')
-      }
+      [x, y, z] = this.move_one_step([x, y, z], step)
     }
-    // calculate the distance to the start point - [0, 0]
-    // TODO: need to take a closer look on the distance calculation
-    const abs_x = x < 0 ? Math.abs(x) + 1 : Math.abs(x), abs_y = y < 0 ? Math.abs(y) + 1 : Math.abs(y)
-    return abs_x > abs_y ? abs_x : abs_y
+    return [x, y, z]
+  }
+
+  // move one step
+  move_one_step([x, y, z], step) {
+    switch(step) {
+      case 'N':
+        [x, y, z] = [x, y + 1, z - 1]
+        break
+      case 'NE':
+        [x, y, z] = [x + 1, y, z - 1]
+        break
+      case 'SE':
+        [x, y, z] = [x + 1, y - 1, z]
+        break
+      case 'S':
+        [x, y, z] = [x, y - 1, z + 1]
+        break
+      case 'SW':
+        [x, y, z] = [x - 1, y, z + 1]
+        break
+      case 'NW':
+        [x, y, z] = [x - 1, y + 1, z]
+        break
+      default:
+        console.error('ERROR')
+    }
+    return [x, y, z]
+  }
+
+  // https://stackoverflow.com/a/47749887
+  hex_distance(start, dest) {
+    const dx = Math.abs(dest.x - start.x)
+    const dy = Math.abs(dest.y - start.y)
+    const dz = Math.abs(dest.z - start.z)
+    return (dx + dy + dz) / 2
   }
 
   steps_further_away(input) {
     // 1. split the input by ',', get the move direction
-    // 2. construct hexagon matrix, like:
-    //   +--+      +--+      +--+      +--+      +--+
-    //  /    \    /    \    /    \    /    \    /    \
-    // + -5,2 +--+ -2,2 +--+ 0,2  +--+ 2,2  +--+ 4,2
-    //  \    /    \    /    \    /    \    /    \    /
-    //   +--+ -3,1 +--+ -1,1 +--+ 1,1  +--+ 3,1  +--+
-    //  /    \    /    \    /    \    /    \    /    \
-    // + -5,1 +--+ -2,1 +--+ 0,1  +--+ 2,1  +--+ 4,1
-    //  \    /    \    /    \    /    \    /    \    /
-    //   +--+ -3,0 +--+ -1,0 +--+ 1,0  +--+ 3,0  +--+
-    //  /    \    /    \    /    \    /    \    /    \
-    // + -5,0 +--+ -2,0 +--+ 0,0  +--+ 2,0  +--+ 4,0
-    //  \    /    \    /    \    /    \    /    \    /
-    //   +--+ -4,-1+--+ -1,-1+--+ 1,-1 +--+ 3,-1 +--+
-    //  /    \    /    \    /    \    /    \    /    \
-    // + -5,-1+--+ -2,-1+--+ 0,-1 +--+ 2,-1 +--+ 4,-1
-    //  \    /    \    /    \    /    \    /    \    /
-    //   +--+ -4,-2+--+ -1,-2+--+ 1,-2 +--+ 3,-2 +--+
-    //  /    \    /    \    /    \    /    \    /    \
-    // + -5,-2+--+ -2,-2+--+ 0,-2 +--+ 2,-2 +--+ 4,-2
-    //  \    /    \    /    \    /    \    /    \    /
-    //   +--+ -4,-3+--+ -1,-3+--+ 1,-3 +--+ 3,-3 +--+
+    // 2. construct hexagon matrix, like above:
     // 3. move in the above matrix according to the step
     // 4. compare with the max distance to record the maximum
 
     const steps = input.split(/,/).map( s => s.trim().toUpperCase())
 
     let max_distance = 0
-    let [x, y] = [0, 0]
+    let [x, y, z] = [0, 0, 0]
     for (let step of steps) {
-      switch(step) {
-        case 'N':
-          [x, y] = [x, y + 1]
-          break
-        case 'NE':
-          if (x % 2 === 0)
-            [x, y] = [x + 1, y + 1]
-          else
-            [x, y] = [x + 1, y]
-          break
-        case 'SE':
-          if (x % 2 === 0)
-            [x, y] = [x + 1, y]
-          else
-            [x, y] = [x + 1, y - 1]
-          break
-        case 'S':
-          [x, y] = [x, y - 1]
-          break
-        case 'SW':
-          if (x % 2 === 0)
-            [x, y] = [x - 1, y]
-          else
-            [x, y] = [x - 1, y - 1]
-          break
-        case 'NW':
-          if(x % 2 === 0)
-            [x, y] = [x - 1, y + 1]
-          else
-            [x, y] = [x - 1, y]
-          break
-        default:
-          console.error('ERROR')
-      }
-      const abs_x = x < 0 ? Math.abs(x) + 1 : Math.abs(x), abs_y = y < 0 ? Math.abs(y) + 1 : Math.abs(y)
-      const this_distance = abs_x > abs_y ? abs_x : abs_y
+      [x, y, z] = this.move_one_step([x, y, z], step)
+
+      const this_distance = this.hex_distance({x: 0, y: 0, z: 0}, {x: x, y: y, z: z})
       if (max_distance < this_distance) max_distance = this_distance
     }
     return max_distance
