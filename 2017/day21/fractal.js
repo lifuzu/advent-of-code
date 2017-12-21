@@ -99,7 +99,7 @@ class FractalArt {
     for (let p = 0; p < hash_patterns.length; ++p) {
       const pattern_head = hash_patterns[p][0]
       const pattern_tail = hash_patterns[p][1]
-      let patterns_enhance = this.rotate(pattern_head, pattern_head.match(/\//g).length + 1)
+      let patterns_enhance = this.rotate(pattern_head)
       // console.log(patterns_enhance)
       for (let pattern of patterns_enhance) {
         let pattern_heads = hash_patterns.map( p => p[0])
@@ -110,7 +110,7 @@ class FractalArt {
           hash_patterns.push([pattern, pattern_tail])
         }
       }
-      patterns_enhance = this.flip(pattern_head, pattern_head.match(/\//g).length + 1)
+      patterns_enhance = this.flip(pattern_head)
       // console.log(patterns_enhance)
       for (let pattern of patterns_enhance) {
         let pattern_heads = hash_patterns.map( p => p[0])
@@ -176,12 +176,9 @@ class FractalArt {
         // console.log('after match:', images[i])
       }
       // merge images to image
-      // console.log('images:',images)
-      // image = images.join('/')
       image = this.merge(images)
-      // console.log('image', image)
     }
-    // console.log(image.split(''))
+
     // calc # number, then return the number
     return image.split('').reduce((acc, curr, i, arr) => arr[i] === '#' ? ++acc : acc, 0)
   }
@@ -190,7 +187,6 @@ class FractalArt {
     let image_tmp = ''
     for (let pattern of patterns) {
       if ( image === pattern[0] && pattern[0].length === length) {
-        // console.log(pattern)
         found = true
         image_tmp = pattern[1]
       }
@@ -210,7 +206,6 @@ class FractalArt {
     let strings = []
     for (let i = 0; i < length; ++i) {
       items[i] = array[i].split(/\//)
-      // console.log('items:', items)
     }
 
     const d = Math.sqrt(items.length)
@@ -225,61 +220,40 @@ class FractalArt {
     }
 
     strings = strings.slice(0, strings.length - 1)
-    // console.log(strings.join(''))
     return strings.join('')
   }
   split(string, size) {
     let re = new RegExp('.{1,' + size + '}', 'g')
     return string.match(re)
   }
-  rotate(string, dimension) {
-    let str = string.replace(/\//g, '')
-    let strings = []
-    if (dimension === 2) {
-      let str_tmp = str[2]+str[0]+'/'+str[3]+str[1]
-      strings.push(str_tmp)
-      str_tmp = str[3]+str[2]+'/'+str[1]+str[0]
-      strings.push(str_tmp)
-      str_tmp = str[1]+str[3]+'/'+str[0]+str[2]
-      strings.push(str_tmp)
-    } else if (dimension === 3) {
-      // let str_tmp = str[3]+str[0]+str[1]+'/'+str[6]+str[4]+str[2]+'/'+str[7]+str[8]+str[5]
-      // strings.push(str_tmp)
-      let str_tmp = str[6]+str[3]+str[0]+'/'+str[7]+str[4]+str[1]+'/'+str[8]+str[5]+str[2]
-      strings.push(str_tmp)
-      // str_tmp = str[7]+str[6]+str[3]+'/'+str[8]+str[4]+str[0]+'/'+str[5]+str[2]+str[1]
-      // strings.push(str_tmp)
-      str_tmp = str[8]+str[7]+str[6]+'/'+str[5]+str[4]+str[3]+'/'+str[2]+str[1]+str[0]
-      strings.push(str_tmp)
-      // str_tmp = str[5]+str[8]+str[7]+'/'+str[2]+str[4]+str[6]+'/'+str[1]+str[0]+str[3]
-      // strings.push(str_tmp)
-      str_tmp = str[2]+str[5]+str[8]+'/'+str[1]+str[4]+str[7]+'/'+str[0]+str[3]+str[6]
-      strings.push(str_tmp)
-      // str_tmp = str[1]+str[2]+str[5]+'/'+str[0]+str[4]+str[8]+'/'+str[3]+str[6]+str[7]
-      // strings.push(str_tmp)
+  rotate(string) {
+    const strs = []
+    let str_arr = string.split(/\//)
+
+    for (let r = 0; r < 4; ++r) {
+      let tmp_arr = []
+      for (let i = 0; i < str_arr.length; ++i) {
+        let tmp_str = ''
+        for (let j = str_arr[i].length - 1; j >= 0; --j) {
+          tmp_str += str_arr[j][i]
+        }
+        tmp_arr.push(tmp_str)
+      }
+      str_arr = tmp_arr.slice()
+      strs.push(tmp_arr.join('/'))
     }
-    return strings
+    return strs
   }
-  flip(string, dimension) {
-    let str = string.replace(/\//g, '')
-    let strings = []
-    if (dimension === 2) {
-      let str_tmp = str[2]+str[3]+'/'+str[0]+str[1]
-      strings.push(str_tmp)
-      str_tmp = str[3]+str[2]+'/'+str[1]+str[0]
-      strings.push(str_tmp)
-      str_tmp = str[1]+str[0]+'/'+str[3]+str[2]
-      strings.push(str_tmp)
-    } else if (dimension === 3) {
-      let str_tmp = str[2]+str[1]+str[0]+'/'+str[5]+str[4]+str[3]+'/'+str[8]+str[7]+str[6]
-      strings.push(str_tmp)
-      str_tmp = str[6]+str[7]+str[8]+'/'+str[3]+str[4]+str[5]+'/'+str[0]+str[1]+str[2]
-      strings.push(str_tmp)
-      str_tmp = str[8]+str[7]+str[6]+'/'+str[5]+str[4]+str[3]+'/'+str[2]+str[1]+str[0]
-      strings.push(str_tmp)
-    }
-    return strings
+  flip(string) {
+    const strs = []
+    let str_arr = string.split(/\//)
+    // console.log(str_arr)
+    strs.push(str_arr.reverse().join('/'))
+    strs.push(str_arr.map(s => s.split('').reverse().join('')).join('/'))
+    return strs
   }
+  // flip: 0,1; rotate: 0,1,2,3
+  morph(arr, rotate, flip) {}
 }
 
 module.exports = {
@@ -294,8 +268,12 @@ if (require.main === module) {
 ###`, input_patterns = `../.# => ##./#../...
 .#./..#/### => #..#/..../..../#..#`, times = 2
   let output = fractal.draw(input_initial, input_patterns, times)
-  console.log(output)
-  assert.equal(output, 12)
+  // console.log(output)
+  // assert.equal(output, 12)
+
+  // output = fractal.rotate('.#./..#/###', 3)
+  // console.log(output)
+  // process.exit(0)
 
   console.log('======')
   input_patterns = `../.. => .../.../..#
