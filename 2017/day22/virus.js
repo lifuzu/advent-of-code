@@ -218,17 +218,10 @@ class SporificaVirus {
       case '.':
         this.facing = this.turn_left(this.facing)
 
-        if (this.increase_map(x, y)) {
-          x++; y++
-        }
-
         this.map[y][x] = 'w'
         this.stand = this.step(x, y, this.facing)
         break
       case 'w':
-        if (this.increase_map(x, y)) {
-          x++; y++
-        }
 
         this.map[y][x] = '#'
         this.stand = this.step(x, y, this.facing)
@@ -236,10 +229,6 @@ class SporificaVirus {
         break
       case '#':
         this.facing = this.turn_right(this.facing)
-
-        if (this.increase_map(x, y)) {
-          x++; y++
-        }
 
         this.map[y][x] = 'f'
         this.stand = this.step(x, y, this.facing)
@@ -254,6 +243,11 @@ class SporificaVirus {
         console.error('ERROR!')
     }
 
+    x = this.stand[0], y = this.stand[1]
+    if (this.increase_map(x, y)) {
+      this.stand = [x + 1, y + 1]
+    }
+
     return infection
   }
 
@@ -263,35 +257,35 @@ class SporificaVirus {
     if (this.map[y][x] === '.') {
       this.facing = this.turn_left(this.facing)
 
-      if (this.increase_map(x, y)) {
-        x++; y++
-      }
-
       this.map[y][x] = '#'
-      this.stand = this.step(x, y, this.facing)
+      {[x, y] = this.step(x, y, this.facing)}
       infection++
     } else if (this.map[y][x] === '#') {
       this.facing = this.turn_right(this.facing)
 
-      if (this.increase_map(x, y)) {
-        x++; y++
-      }
-
       this.map[y][x] = '.'
-      this.stand = this.step(x, y, this.facing)
+      {[x, y] = this.step(x, y, this.facing)}
     }
+
+    // x = this.stand[0], y = this.stand[1]
+    if (this.increase_map(x, y)) {
+      this.stand = [x + 1, y + 1]
+    } else {
+      this.stand = [x, y]
+    }
+
     return infection
   }
 
   increase_map(x, y) {
-    let [x_n, y_n] = this.step(x, y, this.facing)
-    if (x_n < 0 || y_n < 0) {
+    // let [x_n, y_n] = this.step(x, y, this.facing)
+    if (x < 0 || y < 0) {
       this.map.unshift(Array(this.map[0].length + 1).fill('.'))
       for (let i = 1; i < this.map.length; ++i) {
         this.map[i].unshift('.')
       }
       return true
-    } else if (x_n > this.map[0].length - 1 || y_n > this.map.length - 1) {
+    } else if (x > this.map[0].length - 1 || y > this.map.length - 1) {
       for (let i = 0; i < this.map.length; ++i) {
         this.map[i].push('.')
       }
